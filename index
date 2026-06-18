@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>PaguePlay | Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #6366f1; --success: #22c55e; --bg: #05050a; 
+            --glass: rgba(20, 20, 30, 0.8); --danger: #ef4444;
+        }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        
+        .card { 
+            background: var(--glass); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1);
+            padding: 3rem; border-radius: 40px; width: 100%; max-width: 600px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+        }
+        
+        #errorModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #1a1a24; padding: 3rem; border-radius: 30px; border: 2px solid var(--danger); text-align: center; max-width: 400px; }
+
+        .logos { display: flex; gap: 30px; justify-content: center; margin-bottom: 30px; }
+        .logos img { height: 60px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.1)); }
+        
+        .header-labels { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 2rem; }
+        .icon-box { display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 600; }
+        .icon-box img { width: 35px; height: 35px; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        input, select { width: 100%; padding: 20px; margin-bottom: 20px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.4); color: #fff; font-size: 1.1rem; box-sizing: border-box; }
+        
+        .info-badge { background: var(--primary); padding: 12px; border-radius: 15px; text-align: center; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; }
+        
+        .btn-meta { width: 100%; padding: 20px; border-radius: 20px; border: none; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.4s; background: rgba(255,255,255,0.1); color: white; }
+        .btn-meta.active { background: var(--success); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+
+        .result-display { font-size: 4rem; font-weight: 900; text-align: center; color: var(--success); margin: 25px 0; }
+        
+        footer { text-align: center; font-size: 0.8rem; color: #64748b; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div id="errorModal">
+    <div class="modal-content">
+        <h2 style="color:var(--danger)">ACESSO NEGADO</h2>
+        <p>Senha incorreta para o setor selecionado.</p>
+        <button class="btn-meta" style="background:var(--danger)" onclick="closeError()">TENTAR NOVAMENTE</button>
+    </div>
+</div>
+
+<div class="card" id="loginScreen">
+    <div class="logos">
+        <img src="https://i.ibb.co/m5KJY4nB/Logo-do-Bookplay-Vertical-removebg-preview.png">
+        <img src="https://pagueplay.com.br/build/images/logo-pagueplay.svg">
+    </div>
+    <select id="selectSetor">
+        <option value="0.0025|Sky-99#Alpha|Play 1|0,25%">Play 1</option>
+        <option value="0.0040|Flux-44*Delta|Play 2|0,40%">Play 2</option>
+        <option value="0.0050|Nova77!Zeta|Play 3|0,50%">Play 3</option>
+        <option value="0.0150|Core88@Omega|Play 4|1,50%">Play 4</option>
+        <option value="0.0100|Bolt22$Sigma|Play 5|1,00%">Play 5</option>
+        <option value="0.0125|Apex55&Gamma|Play 6|1,25%">Play 6</option>
+        <option value="0.0025|Rec-Key*800|Receptivo|0,25%">Receptivo</option>
+        <option value="0.0050|MixPlus#333|Play Mix|0,50%">Play Mix</option>
+    </select>
+    <input type="password" id="password" placeholder="Digite a senha do setor">
+    <button class="btn-meta" style="background:var(--primary)" onclick="fazerLogin()">ACESSAR PAINEL</button>
+</div>
+
+<div class="card" id="app" style="display:none;">
+    <div class="header-labels">
+        <div class="icon-box">Pix Automático <img src="https://img.icons8.com/officel/80/pix.png"/></div>
+        <div class="icon-box">Cartão Recorrente <img src="https://img.icons8.com/fluency/96/bank-card-back-side.png"/></div>
+    </div>
+    <div class="info-badge" id="infoSetor">CARREGANDO...</div>
+    <input type="text" id="valor" placeholder="R$ 0,00" oninput="mascaraMoeda(this)">
+    <button class="btn-meta" id="btnMeta" onclick="toggleMeta()">ATIVAR META BATIDA (X2)</button>
+    <div class="result-display" id="resultado">R$ 0,00</div>
+    
+    <footer>
+        <span id="dataHora"></span>
+    </footer>
+</div>
+
+<script>
+    let multGlobal = 0;
+
+    function fazerLogin() {
+        const [mult, senha, nome, taxa] = document.getElementById('selectSetor').value.split('|');
+        if (document.getElementById('password').value === senha) {
+            multGlobal = parseFloat(mult);
+            document.getElementById('infoSetor').innerText = `SETOR: ${nome} | TAXA: ${taxa}`;
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        } else {
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+    }
+
+    function closeError() { document.getElementById('errorModal').style.display = 'none'; }
+
+    function mascaraMoeda(i) {
+        let v = i.value.replace(/\D/g, '');
+        v = (v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        i.value = v;
+        calcular();
+    }
+
+    function toggleMeta() {
+        const btn = document.getElementById('btnMeta');
+        btn.classList.toggle('active');
+        calcular();
+    }
+
+    function calcular() {
+        let v = parseFloat(document.getElementById('valor').value.replace(/\D/g, '')) / 100 || 0;
+        let mult = document.getElementById('btnMeta').classList.contains('active') ? multGlobal * 2 : multGlobal;
+        document.getElementById('resultado').innerText = (v * mult).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // Atualiza data e hora
+    setInterval(() => {
+        const agora = new Date();
+        document.getElementById('dataHora').innerText = agora.toLocaleDateString('pt-BR') + ' | ' + agora.toLocaleTimeString('pt-BR');
+    }, 1000);
+</script>
+</body>
+</html>
