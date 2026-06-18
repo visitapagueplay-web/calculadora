@@ -56,14 +56,14 @@
         <img src="https://pagueplay.com.br/build/images/logo-pagueplay.svg">
     </div>
     <select id="selectSetor">
-        <option value="0.0025|Sky-99#Alpha|Play 1|0,25%">Play 1</option>
-        <option value="0.0040|Flux-44*Delta|Play 2|0,40%">Play 2</option>
-        <option value="0.0050|Nova77!Zeta|Play 3|0,50%">Play 3</option>
-        <option value="0.0150|Core88@Omega|Play 4|1,50%">Play 4</option>
-        <option value="0.0100|Bolt22$Sigma|Play 5|1,00%">Play 5</option>
-        <option value="0.0125|Apex55&Gamma|Play 6|1,25%">Play 6</option>
-        <option value="0.0025|Rec-Key*800|Receptivo|0,25%">Receptivo</option>
-        <option value="0.0050|MixPlus#333|Play Mix|0,50%">Play Mix</option>
+        <option value="0.0025|U2t5LTk5I0FscGhh|Play 1|0,25%">Play 1</option>
+        <option value="0.0040|Rmx1eC00NCpEZWx0YQ==|Play 2|0,40%">Play 2</option>
+        <option value="0.0050|Tm92YTc3IVpldGE=|Play 3|0,50%">Play 3</option>
+        <option value="0.0150|Q29yZTg4QE9tZWdh|Play 4|1,50%">Play 4</option>
+        <option value="0.0100|Qm9sdDIyJFNpZ21h|Play 5|1,00%">Play 5</option>
+        <option value="0.0125|QXBleDU1JkdhbW1h|Play 6|1,25%">Play 6</option>
+        <option value="0.0025|UmVjLUtleSo4MDA=|Receptivo|0,25%">Receptivo</option>
+        <option value="0.0050|TWl4UGx1cyMzMzM=|Play Mix|0,50%">Play Mix</option>
     </select>
     <input type="password" id="password" placeholder="Digite a senha do setor">
     <button class="btn-meta" style="background:var(--primary)" onclick="fazerLogin()">ACESSAR PAINEL</button>
@@ -88,8 +88,10 @@
     let multGlobal = 0;
 
     function fazerLogin() {
-        const [mult, senha, nome, taxa] = document.getElementById('selectSetor').value.split('|');
-        if (document.getElementById('password').value === senha) {
+        const [mult, senhaCodificada, nome, taxa] = document.getElementById('selectSetor').value.split('|');
+        const senhaReal = atob(senhaCodificada); // Decodifica a senha no momento do uso
+        
+        if (document.getElementById('password').value === senhaReal) {
             multGlobal = parseFloat(mult);
             document.getElementById('infoSetor').innerText = `SETOR: ${nome} | TAXA: ${taxa}`;
             document.getElementById('loginScreen').style.display = 'none';
@@ -120,7 +122,6 @@
         document.getElementById('resultado').innerText = (v * mult).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    // Atualiza data e hora
     setInterval(() => {
         const agora = new Date();
         document.getElementById('dataHora').innerText = agora.toLocaleDateString('pt-BR') + ' | ' + agora.toLocaleTimeString('pt-BR');
